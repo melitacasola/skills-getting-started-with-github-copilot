@@ -20,14 +20,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        // Build participants HTML: chips with avatar initials or a "no participants" message
+        let participantsHTML = "";
+        if (details.participants && details.participants.length) {
+          participantsHTML = details.participants
+            .map((p) => {
+              const initials = (p || "")
+                .split(" ")
+                .map((s) => s[0] || "")
+                .join("")
+                .slice(0, 2)
+                .toUpperCase();
+              return `<li class="participant"><span class="avatar">${initials}</span><span class="name">${p}</span></li>`;
+            })
+            .join("");
+        } else {
+          participantsHTML = `<li class="no-participants">No participants yet</li>`;
+        }
+
         activityCard.innerHTML = `
           <h4>${name}</h4>
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <p><strong>Participants:</strong></p>
-          <ul>
-            ${details.participants.map(participant => `<li>${participant}</li>`).join('')}
+          <ul class="participant-list">
+            ${participantsHTML}
           </ul>
         `;
 
