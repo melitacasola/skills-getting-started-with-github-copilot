@@ -77,6 +77,18 @@ activities = {
     }
 }
 
+has_changes = False
+
+
+def _mark_change() -> None:
+    global has_changes
+    has_changes = True
+
+
+def _reset_changes() -> None:
+    global has_changes
+    has_changes = False
+
 
 @app.get("/")
 def root():
@@ -104,6 +116,7 @@ def signup_for_activity(activity_name: str, email: str):
 
     # Add student
     activity["participants"].append(email)
+    _mark_change()
     return {"message": f"Signed up {email} for {activity_name}"}
 
 
@@ -119,4 +132,24 @@ def unregister_from_activity(activity_name: str, email: str):
         raise HTTPException(status_code=404, detail="Student not found in activity")
 
     activity["participants"].remove(email)
+    _mark_change()
     return {"message": f"Unregistered {email} from {activity_name}"}
+
+
+@app.get("/navigation/next")
+def get_next_route():
+    """Return the next route depending on whether any activity changes were made."""
+    return {"next": "/mmb/payment" if has_changes else "/mmb"}
+
+
+@app.post("/navigation/reset")
+def reset_navigation_state():
+    """Reset navigation change tracking (useful for fresh sessions or tests)."""
+    _reset_changes()
+    return {"message": "Navigation state reset"}
+
+
+@app.get("/navigation/status")
+def navigation_status():
+    """Expose whether there are pending changes."""
+    return {"has_changes": has_changes}
